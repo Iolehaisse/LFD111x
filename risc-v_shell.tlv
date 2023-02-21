@@ -44,8 +44,16 @@
    $reset = *reset;
    
    
-   // YOUR CODE HERE
-   // ...
+   $pc[31:0] = >>1$next_pc;
+   $next_pc[31:0] = $reset ? 0 : $pc+32'b100;
+
+   `READONLY_MEM($pc, $$instr[31:0]);
+   $is_u_instr = $instr[6:2] ==? 5'b0x101;
+   $is_s_instr = $instr[6:3] ==? 4'b0100;
+   $is_b_instr = $instr[6:2] == 5'b11000;
+   $is_j_instr = $instr[6:2] == 5'b11011;
+   $is_i_instr = ($instr[6:5]==00 && !$is_u_instr )|$instr[6:2] == 5'b11001;
+   $is_r_instr = $instr[6]!=$instr[5] && $instr[4:3]!=2'b00 && !$is_u_instr;
    
    
    // Assert these to end simulation (before Makerchip cycle limit).
