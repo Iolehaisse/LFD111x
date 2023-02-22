@@ -57,7 +57,7 @@
    $is_r_instr = $instr[6]!=$instr[5] && $instr[4:3]!=2'b00 && !$is_u_instr;
    
    // Instruction decoder
-   $funct3[1:0] = $instr[14:12];
+   $funct3[2:0] = $instr[14:12];
    $rs1[4:0] = $instr[19:15];
    $rs2[4:0] = $instr[24:20];
    $rd[4:0] = $instr[11:7];
@@ -74,8 +74,8 @@
    //immediate
    $imm[31:0] = $is_i_instr ? {  {21{$instr[31]}},  $instr[30:20]  } :
                $is_s_instr ? { {21{$instr[31]}}, $instr[30:25], $instr[11:7]} :
-               $is_b_instr ? { {20{$instr[31]}},$instr[7], $instr[30:25], $instr[11:8]} : 
-               $is_j_instr ? {  {11{$instr[31]}}, $instr[19:12], $instr[20], $instr[30:21],1'b0 } :
+               $is_b_instr ? { {20{$instr[31]}},$instr[7], $instr[30:25], $instr[11:8],1'b0} : 
+               $is_j_instr ? {  {12{$instr[31]}}, $instr[19:12], $instr[20], $instr[30:21],1'b0 } :
                $is_u_instr ? {  $instr[31:12], 12'b0  }:
                
                            32'b0;  // Default 
@@ -106,3 +106,4 @@
    m4+cpu_viz()
 \SV
    endmodule
+                   
