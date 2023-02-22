@@ -44,8 +44,8 @@
    $reset = *reset;
    
    //Program Counter
-   $pc[31:0] = >>1$next_pc;
-   $next_pc[31:0] = $reset ? 0 : $pc+32'b100;
+   $pc[31:0] = >>1$next_pc; 
+   $next_pc[31:0] = $reset ? 0 : $taken_br ? $br_tgt_pc : $pc+32'b100;
 
    // Instruction type
    `READONLY_MEM($pc, $$instr[31:0]);
@@ -67,7 +67,7 @@
    $funct3_valid = !$is_u_instr && !$is_j_instr;
    $rs1_valid = $funct3_valid;
    $rs2_valid = $rs1_valid & !$is_i_instr;
-   $rd_valid = !$is_s_instr & !$is_b_instr;
+   $rd_valid = !$is_s_instr & !$is_b_instr & $rd!=5'b0;
    $imm_valid = !$is_r_instr;
    // Silence the messages
    `BOGUS_USE($rd $rd_valid $rs1 $rs1_valid $rs2 $rs2_valid $funct3 $funct3_valid $imm_valid $is_u_instr $is_s_instr $op_code $is_r_instr $is_i_instr $is_j_instr)
@@ -97,11 +97,32 @@
    //Silence the messages
    `BOGUS_USE($imm $dec_bits $is_add $is_addi $is_beq $is_bne $is_blt $is_bge $is_bltu $is_bgeu)
 
+   //ALU
+   $result[31:0] = $is_addi ? $src1_value + $imm :
+                   $is_add ? $src1_value + $src2_value :
+                   32'b0;
+
+   $taken_br = $is_beq & $src1_value==$src2_value :
+               $is_bne & $src1_value!=$src2_value :
+               $is_blt & ($src1_value < $src2_value) ^ ($src1_value[31] != $src2_value[31]) :
+               $is_bge & ($src1_value >= $src2_value) ^ ($src1_value[31] != $src2_value[31])  :
+               $is_bltu & $src1_value<$src2_value :
+               $is_bgeu & $src1_value>$src2_value :
+               1'b0;
+
+   $br_tgt_pc[31:0] = $pc+$imm;
+
+
    // Assert these to end simulation (before Makerchip cycle limit).
    *passed = 1'b0;
    *failed = *cyc_cnt > M4_MAX_CYC;
    
-   //m4+rf(32, 32, $reset, $wr_en, $wr_index[4:0], $wr_data[31:0], $rd1_en, $rd1_index[4:0], $rd1_data, $rd2_en, $rd2_index[4:0], $rd2_data)
+   
+   
+   // register file initialization as an array
+   m4+rf(32, 32, $reset, $rd_valid, $rd[4:0], $result[31:0], $rs1_valid, $rs1[4:0], $src1_value, $rs2_valid, $rs2[4:0], $src2_value)
+   
+   
    //m4+dmem(32, 32, $reset, $addr[4:0], $wr_en, $wr_data[31:0], $rd_en, $rd_data)
    m4+cpu_viz()
 \SV
