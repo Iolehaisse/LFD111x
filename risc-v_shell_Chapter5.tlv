@@ -92,7 +92,7 @@
    $is_or = $dec_bits ==? 11'b0_110_0110011;
    $is_and = $dec_bits ==? 11'b0_111_0110011;
 
-   $is_load = $dec_bits == 11'bx_xxx_0000011;
+   $is_load = $dec_bits ==? 11'bx_xxx_0000011;
 
    
    //Silence the messages
@@ -165,7 +165,7 @@
    
    
    
-   m4+dmem(32, 32, $reset, $result[4:0], $is_s_instr, $src2_value[31:0], $is_load, $ld_data)
+   m4+dmem(32, 32, $reset, $result[6:2], $is_s_instr, $src2_value[31:0], $is_load, $ld_data)
    m4+cpu_viz()
 \SV
    endmodule
