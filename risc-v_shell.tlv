@@ -45,7 +45,7 @@
    $rd_valid = !$is_s_instr & !$is_b_instr & $rd!=5'b0;
    $imm_valid = !$is_r_instr;
    // Silence the messages
-   `BOGUS_USE($rd $rd_valid $rs1 $rs1_valid $rs2 $rs2_valid $funct3 $funct3_valid $imm_valid $is_u_instr $is_s_instr $op_code $is_r_instr $is_i_instr $is_j_instr)
+   `BOGUS_USE($rd $rd_valid $rs1 $rs1_valid $rs2 $rs2_valid $funct3 $funct3_valid $imm_valid $is_u_instr $is_s_instr $is_r_instr $is_i_instr $is_j_instr)
    //immediate
    $imm[31:0] = $is_i_instr ? {  {21{$instr[31]}},  $instr[30:20]  } :
                $is_s_instr ? { {21{$instr[31]}}, $instr[30:25], $instr[11:7]} :
@@ -107,7 +107,7 @@
    $srai_rslt[63:0] = $sext_src1 >> $imm[4:0];
 
 
-   $result[31:0] = $is_addi ? $src1_value + $imm :
+   $result[31:0] = $is_addi | $is_load | $is_s_instr ? $src1_value + $imm :
                   $is_add ? $src1_value + $src2_value :
                   $is_andi ? $src1_value & $imm :
                   $is_ori ? $src1_value | $imm :
@@ -161,10 +161,11 @@
    
    
    // register file initialization as an array
-   m4+rf(32, 32, $reset, $rd_valid, $rd[4:0], $result[31:0], $rs1_valid, $rs1[4:0], $src1_value, $rs2_valid, $rs2[4:0], $src2_value)
+   m4+rf(32, 32, $reset, $rd_valid, $rd[4:0], $is_load ? $ld_data : $result[31:0], $rs1_valid, $rs1[4:0], $src1_value, $rs2_valid, $rs2[4:0], $src2_value)
    
    
-   //m4+dmem(32, 32, $reset, $addr[4:0], $wr_en, $wr_data[31:0], $rd_en, $rd_data)
+   
+   m4+dmem(32, 32, $reset, $result[4:0], $is_s_instr, $src2_value[31:0], $is_load, $ld_data)
    m4+cpu_viz()
 \SV
    endmodule
